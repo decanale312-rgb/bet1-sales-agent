@@ -1,0 +1,64 @@
+{
+  "records": [
+    {
+      "id": "rec_1782692414758_1",
+      "observation": {
+        "company": "Honeywell",
+        "contact": "Carlos",
+        "need": "pneumatic valves",
+        "stage": "quote_needed",
+        "estimatedValueMxn": 25000,
+        "deadline": "Friday",
+        "upsellOpportunity": "sensors",
+        "summary": "Carlos from Honeywell asked for pneumatic valves. Needs quote by Friday. Budget maybe 25000 pesos. He also mentioned sensors.",
+        "rawText": "Carlos from Honeywell asked for pneumatic valves. Needs quote by Friday. Budget maybe 25000 pesos. He also mentioned sensors.",
+        "timestamp": "2026-06-29T00:20:14.756Z"
+      },
+      "recommendation": "Prepare quote for pneumatic valves and ask about sensor models.",
+      "humanDecision": "pursued",
+      "outcome": "pending",
+      "createdAt": "2026-06-29T00:20:14.758Z",
+      "updatedAt": "2026-06-29T00:20:14.758Z"
+    },
+    {
+      "id": "rec_1782692414760_2",
+      "observation": {
+        "company": "Bimbo",
+        "contact": "Ana",
+        "need": "tubing and fittings for a packaging line",
+        "stage": "follow_up",
+        "estimatedValueMxn": 12000,
+        "deadline": "this week",
+        "upsellOpportunity": "fittings",
+        "summary": "Ana from Bimbo needs tubing and fittings for a packaging line. Follow up this week. Around 12000 pesos.",
+        "rawText": "Ana from Bimbo needs tubing and fittings for a packaging line. Follow up this week. Around 12000 pesos.",
+        "timestamp": "2026-06-29T00:20:14.760Z"
+      },
+      "recommendation": "Follow up with Ana about tubing and fittings for a packaging line and qualify fittings.",
+      "humanDecision": "pursued",
+      "outcome": "pending",
+      "createdAt": "2026-06-29T00:20:14.760Z",
+      "updatedAt": "2026-06-29T00:20:14.760Z"
+    },
+    {
+      "id": "rec_1782692414762_3",
+      "observation": {
+        "company": "Cemex",
+        "contact": "Roberto",
+        "need": "maintenance for a control cabinet",
+        "stage": "quote_needed",
+        "estimatedValueMxn": 35000,
+        "deadline": "tomorrow",
+        "upsellOpportunity": "maintenance",
+        "summary": "Roberto from Cemex requested maintenance for a control cabinet. Quote needed tomorrow. Value 35000 MXN. Also asked about cabinet assembly.",
+        "rawText": "Roberto from Cemex requested maintenance for a control cabinet. Quote needed tomorrow. Value 35000 MXN. Also asked about cabinet assembly.",
+        "timestamp": "2026-06-29T00:20:14.761Z"
+      },
+      "recommendation": "Prepare quote for maintenance for a control cabinet and ask about maintenance details.",
+      "humanDecision": "pursued",
+      "outcome": "pending",
+      "createdAt": "2026-06-29T00:20:14.762Z",
+      "updatedAt": "2026-06-29T00:20:14.762Z"
+    }
+  ]
+}
