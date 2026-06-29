@@ -9,3 +9,7 @@ Sales note -> Agent -> Core -> Memory -> Next action
 Run:
 
 node index.js
+
+Reset memory before demos or publishing:
+
+node index.js reset

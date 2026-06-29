@@ -25,6 +25,11 @@ class Memory {
     fs.writeFileSync(this.filePath, `${JSON.stringify(this.data, null, 2)}\n`);
   }
 
+  reset() {
+    this.data = { records: [] };
+    this.write();
+  }
+
   addRecord({ observation, recommendation, humanDecision, outcome = 'pending' }) {
     if (!VALID_OUTCOMES.has(outcome)) {
       throw new Error(`Invalid outcome "${outcome}".`);

@@ -19,6 +19,17 @@ async function runOutcomeCommand() {
   return true;
 }
 
+async function runResetCommand() {
+  const [, , command] = process.argv;
+  if (command !== 'reset') {
+    return false;
+  }
+
+  memory.reset();
+  console.log('Memory reset.');
+  return true;
+}
+
 async function runDemo() {
   memory.data.records = memory.data.records.filter(
     (record) => !rawNotes.includes(record.observation && record.observation.rawText)
@@ -57,8 +68,9 @@ async function runDemo() {
 }
 
 (async () => {
-  const handledOutcomeCommand = await runOutcomeCommand();
-  if (!handledOutcomeCommand) {
+  const handledResetCommand = await runResetCommand();
+  const handledOutcomeCommand = handledResetCommand || await runOutcomeCommand();
+  if (!handledResetCommand && !handledOutcomeCommand) {
     await runDemo();
   }
 })().catch((error) => {
