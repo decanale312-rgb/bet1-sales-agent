@@ -30,6 +30,39 @@ async function runResetCommand() {
   return true;
 }
 
+async function runAddCommand() {
+  const [, , command, ...noteParts] = process.argv;
+  if (command !== 'add') {
+    return false;
+  }
+
+  const rawNote = noteParts.join(' ').trim();
+  if (!rawNote) {
+    throw new Error('Usage: node index.js add "<sales note>"');
+  }
+
+  const observation = await agent.observeSignal(rawNote);
+  const scored = scoreOpportunity(observation, memory);
+  const record = memory.addRecord({
+    observation,
+    recommendation: scored.nextAction,
+    humanDecision: scored.priorityScore >= 7 ? 'pursued' : 'review'
+  });
+
+  console.log(`Company: ${observation.company}`);
+  console.log(`Contact: ${observation.contact}`);
+  console.log(`Need: ${observation.need}`);
+  console.log(`Stage: ${observation.stage}`);
+  console.log(`Estimated value: ${observation.estimatedValueMxn} MXN`);
+  console.log(`Deadline: ${observation.deadline}`);
+  console.log(`Upsell opportunity: ${observation.upsellOpportunity}`);
+  console.log(`Priority score: ${scored.priorityScore}/10`);
+  console.log(`Risk: ${scored.risk}`);
+  console.log(`Next action: ${scored.nextAction}`);
+  console.log(`Saved record id: ${record.id}`);
+  return true;
+}
+
 async function runDemo() {
   memory.data.records = memory.data.records.filter(
     (record) => !rawNotes.includes(record.observation && record.observation.rawText)
@@ -69,8 +102,9 @@ async function runDemo() {
 
 (async () => {
   const handledResetCommand = await runResetCommand();
-  const handledOutcomeCommand = handledResetCommand || await runOutcomeCommand();
-  if (!handledResetCommand && !handledOutcomeCommand) {
+  const handledAddCommand = handledResetCommand || await runAddCommand();
+  const handledOutcomeCommand = handledAddCommand || await runOutcomeCommand();
+  if (!handledResetCommand && !handledAddCommand && !handledOutcomeCommand) {
     await runDemo();
   }
 })().catch((error) => {
