@@ -23,6 +23,7 @@ const HIGH_PRIORITY_THRESHOLD = 7;
 const WRAP_WIDTH = 86;
 const EXPORT_DIR = path.join(__dirname, 'exports');
 const EXPORT_FILE = path.join(EXPORT_DIR, 'sales-memory-export.csv');
+const JSON_EXPORT_FILE = path.join(EXPORT_DIR, 'sales-memory-export.json');
 
 function formatSection(title) {
   console.log(`\n${title}`);
@@ -208,6 +209,78 @@ function exportMemoryToCsv() {
     mainFilePath: path.relative(__dirname, EXPORT_FILE).replace(/\\/g, '/'),
     timestampedFilePath: path.relative(__dirname, timestampedFile).replace(/\\/g, '/'),
     count: memory.data.records.length
+  };
+}
+
+function getPipelineValueNumber(value) {
+  const match = String(value || '').match(/^([\d,]+(?:\.\d+)?)\s+MXN$/i);
+  return match ? Number(match[1].replace(/,/g, '')) : 0;
+}
+
+function getJsonSummary(records) {
+  const totalPipelineValue = records.reduce(
+    (total, record) => total + getPipelineValueNumber(record.estimatedPipelineValue),
+    0
+  );
+
+  return {
+    totalRecords: records.length,
+    salesNotes: records.filter((record) => record.recordType === 'Sales Note').length,
+    quoteRequests: records.filter((record) => record.recordType === 'Quote Request').length,
+    marketIntelligence: records.filter((record) => record.recordType === 'Market Intelligence').length,
+    highPriority: records.filter((record) => Number(record.priorityScore) >= HIGH_PRIORITY_THRESHOLD).length,
+    quoteNeeded: records.filter((record) => record.quoteNeeded === 'Yes').length,
+    estimatedPipelineValue: totalPipelineValue > 0 ? `${totalPipelineValue} MXN` : NOT_DETECTED
+  };
+}
+
+function getJsonExportRecords(records) {
+  return records.map((record) => ({
+    recordId: record.recordId,
+    recordType: record.recordType,
+    createdAt: record.createdAt,
+    customer: record.customer,
+    contact: record.contact,
+    mainIssueOrRequest: record.mainIssueOrRequest,
+    productOrServiceRequested: record.productOrServiceRequested,
+    quantity: record.quantity,
+    deadlineOrUrgency: record.deadlineUrgency,
+    priorityScore: record.priorityScore,
+    priorityLevel: record.priorityLevel,
+    quoteNeeded: record.quoteNeeded,
+    upsellOpportunity: record.upsellOpportunity === NOT_DETECTED ? 'No' : 'Yes',
+    estimatedPipelineValue: record.estimatedPipelineValue,
+    recommendedNextAction: record.recommendedNextAction,
+    originalNote: record.originalNote,
+    signalType: record.signalType,
+    regionOrMarket: record.regionOrMarket,
+    suggestedOutboundAngle: record.suggestedOutboundAngle
+  }));
+}
+
+function exportMemoryToJson() {
+  fs.mkdirSync(EXPORT_DIR, { recursive: true });
+  const exportedAt = new Date().toISOString();
+  const businessRecords = memory.data.records.map(formatBusinessRecord);
+  const exportData = {
+    exportedAt,
+    recordCount: businessRecords.length,
+    summary: getJsonSummary(businessRecords),
+    records: getJsonExportRecords(businessRecords)
+  };
+  const timestampedFile = path.join(
+    EXPORT_DIR,
+    `sales-memory-export-${getTimestampForFilename()}.json`
+  );
+  const json = `${JSON.stringify(exportData, null, 2)}\n`;
+
+  fs.writeFileSync(JSON_EXPORT_FILE, json);
+  fs.writeFileSync(timestampedFile, json);
+
+  return {
+    mainFilePath: path.relative(__dirname, JSON_EXPORT_FILE).replace(/\\/g, '/'),
+    timestampedFilePath: path.relative(__dirname, timestampedFile).replace(/\\/g, '/'),
+    count: businessRecords.length
   };
 }
 
@@ -441,6 +514,30 @@ async function runExportCommand() {
   return true;
 }
 
+async function runJsonExportCommand() {
+  const [, , command] = process.argv;
+  if (command !== 'export:json') {
+    return false;
+  }
+
+  const exported = exportMemoryToJson();
+
+  console.log('Bet 1 Sales Agent — JSON Export Complete');
+  console.log('');
+  console.log('Main export:');
+  console.log(exported.mainFilePath);
+  console.log('');
+  console.log('Timestamped copy:');
+  console.log(exported.timestampedFilePath);
+  console.log('');
+  console.log('Records exported:');
+  console.log(exported.count);
+  console.log('');
+  console.log('Business use:');
+  console.log('This JSON gives the future dashboard a clean data source without reading raw memory records.');
+  return true;
+}
+
 async function runMarketCommand() {
   const [, , command, ...noteParts] = process.argv;
   if (command !== 'market') {
@@ -572,13 +669,14 @@ async function runDemo() {
 
 (async () => {
   const handledResetCommand = await runResetCommand();
-  const handledExportCommand = handledResetCommand || await runExportCommand();
+  const handledJsonExportCommand = handledResetCommand || await runJsonExportCommand();
+  const handledExportCommand = handledJsonExportCommand || await runExportCommand();
   const handledMarketCommand = handledExportCommand || await runMarketCommand();
   const handledQuoteCommand = handledMarketCommand || await runQuoteCommand();
   const handledViewCommand = handledQuoteCommand || await runViewCommand();
   const handledAddCommand = handledViewCommand || await runAddCommand();
   const handledOutcomeCommand = handledAddCommand || await runOutcomeCommand();
-  if (!handledResetCommand && !handledExportCommand && !handledMarketCommand && !handledQuoteCommand && !handledViewCommand && !handledAddCommand && !handledOutcomeCommand) {
+  if (!handledResetCommand && !handledJsonExportCommand && !handledExportCommand && !handledMarketCommand && !handledQuoteCommand && !handledViewCommand && !handledAddCommand && !handledOutcomeCommand) {
     await runDemo();
   }
 })().catch((error) => {

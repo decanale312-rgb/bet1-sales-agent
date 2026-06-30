@@ -28,12 +28,20 @@ Export saved sales memory:
 
 node index.js export
 
-CSV reports are saved to:
+Export clean JSON for a future dashboard:
+
+node index.js export:json
+
+CSV and JSON reports are saved to:
 
 exports/sales-memory-export.csv
 exports/sales-memory-export-YYYY-MM-DD-HHMM.csv
+exports/sales-memory-export.json
+exports/sales-memory-export-YYYY-MM-DD-HHMM.json
 
 Export files are generated demo artifacts and are ignored by Git.
+
+The JSON export uses the clean business-record formatter so a future dashboard can read stable records, summary counts, and pipeline totals without touching raw memory data.
 
 Inspect clean business records:
 
