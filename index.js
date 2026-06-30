@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const agent = require('./agent');
 const { scoreOpportunity } = require('./core');
 const memory = require('./memory');
@@ -10,6 +12,8 @@ const rawNotes = [
 
 const HIGH_PRIORITY_THRESHOLD = 7;
 const WRAP_WIDTH = 86;
+const EXPORT_DIR = path.join(__dirname, 'exports');
+const EXPORT_FILE = path.join(EXPORT_DIR, 'sales-memory-export.csv');
 
 function formatSection(title) {
   console.log(`\n${title}`);
@@ -84,6 +88,11 @@ function formatPipelineValue(value, hasDetectedValues) {
   return hasDetectedValues ? `${value} MXN` : 'Not detected';
 }
 
+function formatPipelineValueForRecord(record) {
+  const value = Number(record.observation && record.observation.estimatedValueMxn);
+  return formatPipelineValue(value, hasDetectedValue(record));
+}
+
 function getEstimatedPipelineValue(records) {
   return records.reduce((total, record) => {
     const value = Number(record.observation && record.observation.estimatedValueMxn);
@@ -113,6 +122,64 @@ function summarizeRecords(records) {
 
 function getScore(record) {
   return record.scored || scoreOpportunity(record.observation, memory);
+}
+
+function csvEscape(value) {
+  const text = value === undefined || value === null ? '' : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function getCsvRows(records) {
+  const headers = [
+    'record_id',
+    'created_at',
+    'customer',
+    'original_note',
+    'main_issue_or_request',
+    'priority_score',
+    'priority_level',
+    'quote_needed',
+    'upsell_opportunity',
+    'estimated_pipeline_value',
+    'recommended_next_action'
+  ];
+
+  const rows = records.map((record) => {
+    const observation = record.observation || {};
+    const scored = getScore(record);
+    const hasUpsell =
+      observation.upsellOpportunity &&
+      observation.upsellOpportunity !== 'none';
+
+    return [
+      record.id,
+      record.createdAt,
+      getCustomerName(observation),
+      observation.rawText || '',
+      observation.need || 'Not detected',
+      scored.priorityScore,
+      getPriorityLevel(scored.priorityScore),
+      yesNo(observation.stage === 'quote_needed'),
+      hasUpsell ? observation.upsellOpportunity : 'Not detected',
+      formatPipelineValueForRecord(record),
+      formatNextAction(scored.nextAction)
+    ];
+  });
+
+  return [headers, ...rows]
+    .map((row) => row.map(csvEscape).join(','))
+    .join('\n');
+}
+
+function exportMemoryToCsv() {
+  fs.mkdirSync(EXPORT_DIR, { recursive: true });
+  const csv = `${getCsvRows(memory.data.records)}\n`;
+  fs.writeFileSync(EXPORT_FILE, csv);
+
+  return {
+    filePath: path.relative(__dirname, EXPORT_FILE).replace(/\\/g, '/'),
+    count: memory.data.records.length
+  };
 }
 
 async function processSalesNote(rawNote) {
@@ -146,7 +213,7 @@ function printProcessedSalesNotes(processedRecords) {
     console.log(`   Priority: ${item.scored.priorityScore}/10 (${getPriorityLevel(item.scored.priorityScore)})`);
     console.log(`   Quote needed: ${yesNo(quoteNeeded)}`);
     console.log(`   Upsell opportunity: ${yesNo(hasUpsell)}`);
-    console.log(`   Estimated pipeline value: ${formatPipelineValue(Number(item.observation.estimatedValueMxn), hasDetectedValue(item))}`);
+    console.log(`   Estimated pipeline value: ${formatPipelineValueForRecord(item)}`);
     console.log('   Next action:');
     console.log(wrapText(nextAction, WRAP_WIDTH, '     '));
     console.log(`   Original note: ${shorten(item.observation.rawText)}`);
@@ -252,6 +319,27 @@ async function runResetCommand() {
   return true;
 }
 
+async function runExportCommand() {
+  const [, , command] = process.argv;
+  if (command !== 'export') {
+    return false;
+  }
+
+  const exported = exportMemoryToCsv();
+
+  console.log('Bet 1 Sales Agent - Export Complete');
+  console.log('');
+  console.log('File created:');
+  console.log(exported.filePath);
+  console.log('');
+  console.log('Records exported:');
+  console.log(exported.count);
+  console.log('');
+  console.log('Business use:');
+  console.log('This CSV can be reviewed by a salesperson or manager to see follow-ups, quote needs, priorities, and opportunities.');
+  return true;
+}
+
 async function runAddCommand() {
   const [, , command, ...noteParts] = process.argv;
   if (command !== 'add') {
@@ -287,9 +375,10 @@ async function runDemo() {
 
 (async () => {
   const handledResetCommand = await runResetCommand();
-  const handledAddCommand = handledResetCommand || await runAddCommand();
+  const handledExportCommand = handledResetCommand || await runExportCommand();
+  const handledAddCommand = handledExportCommand || await runAddCommand();
   const handledOutcomeCommand = handledAddCommand || await runOutcomeCommand();
-  if (!handledResetCommand && !handledAddCommand && !handledOutcomeCommand) {
+  if (!handledResetCommand && !handledExportCommand && !handledAddCommand && !handledOutcomeCommand) {
     await runDemo();
   }
 })().catch((error) => {
