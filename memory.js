@@ -30,13 +30,14 @@ class Memory {
     this.write();
   }
 
-  addRecord({ observation, recommendation, humanDecision, outcome = 'pending' }) {
+  addRecord({ recordType = 'sales_note', observation, recommendation, humanDecision, outcome = 'pending' }) {
     if (!VALID_OUTCOMES.has(outcome)) {
       throw new Error(`Invalid outcome "${outcome}".`);
     }
 
     const record = {
       id: `rec_${Date.now()}_${this.data.records.length + 1}`,
+      recordType,
       observation,
       recommendation,
       humanDecision,

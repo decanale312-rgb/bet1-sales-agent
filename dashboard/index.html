@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bet 1 Commercial Memory Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">IACONSA commercial prototype</p>
+        <h1>Bet 1 Commercial Memory Dashboard</h1>
+        <p class="subtitle">Local-first prototype for sales follow-up, quote requests, and market intelligence.</p>
+      </div>
+      <div class="data-badge">
+        <span id="dataSourceLabel">Backend API</span>
+        <strong id="exportedAt">Loading</strong>
+      </div>
+    </header>
+
+    <section class="kpi-grid" aria-label="Dashboard KPIs">
+      <article class="kpi-card">
+        <span>Total Records</span>
+        <strong id="kpiTotalRecords">0</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Quote Requests</span>
+        <strong id="kpiQuoteRequests">0</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Market Signals</span>
+        <strong id="kpiMarketSignals">0</strong>
+      </article>
+      <article class="kpi-card priority">
+        <span>High Priority</span>
+        <strong id="kpiHighPriority">0</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Quote Needed</span>
+        <strong id="kpiQuoteNeeded">0</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Estimated Pipeline Value</span>
+        <strong id="kpiPipeline">Not detected</strong>
+      </article>
+    </section>
+
+    <section class="input-panel" aria-label="Add commercial memory record">
+      <div class="panel-heading input-heading">
+        <div>
+          <h2>Add Commercial Memory</h2>
+          <p>Submit a note through the local backend. Records persist to memory.json.</p>
+        </div>
+        <button class="reset-button" type="button" id="resetDemoButton">Reset Demo Data</button>
+      </div>
+      <form class="record-form" id="recordForm">
+        <label for="recordTypeSelect">Record Type</label>
+        <select id="recordTypeSelect" name="recordType">
+          <option value="sales-note">Sales Note</option>
+          <option value="quote-request">Quote Request</option>
+          <option value="market-signal">Market Intelligence</option>
+        </select>
+
+        <label for="noteInput">Note</label>
+        <textarea id="noteInput" name="note" rows="4" placeholder="Customer asked for replacement sensors and possible quote"></textarea>
+
+        <div class="form-actions">
+          <button class="submit-button" type="submit">Add Record</button>
+          <p class="form-status" id="formStatus">Ready</p>
+        </div>
+      </form>
+    </section>
+
+    <section class="workspace-grid">
+      <div class="records-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Commercial Memory Records</h2>
+            <p id="recordCountLabel">0 records shown</p>
+          </div>
+          <div class="filter-group" aria-label="Record type filters">
+            <button class="filter-button active" type="button" data-filter="All">All</button>
+            <button class="filter-button" type="button" data-filter="Sales Note">Sales Notes</button>
+            <button class="filter-button" type="button" data-filter="Quote Request">Quote Requests</button>
+            <button class="filter-button" type="button" data-filter="Market Intelligence">Market Intelligence</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Customer / Target</th>
+                <th>Contact</th>
+                <th>Main Issue / Request</th>
+                <th>Priority</th>
+                <th>Quote Needed</th>
+                <th>Estimated Value</th>
+                <th>Next Action</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="detail-panel" aria-label="Selected record details">
+        <div class="panel-heading compact">
+          <div>
+            <h2>Record Details</h2>
+            <p id="selectedRecordLabel">Select a record</p>
+          </div>
+        </div>
+        <dl class="detail-list" id="detailList"></dl>
+      </aside>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
